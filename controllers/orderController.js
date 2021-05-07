@@ -30,18 +30,18 @@ exports.getOrder = async (req, res, next) => {
         },
         {
           model: OrderDetail,
-          attributes: ["id", "cardCodeId"],
-          include: [
-            {
-              model: CardCode,
-              attributes: ["codeNumber", "codeStatus", "cardProductId"],
-              include: [
-                {
-                  model: CardProduct,
-                },
-              ],
-            },
-          ],
+          // attributes: ["id", "cardCodeId"],
+          // include: [
+          //   {
+          //     model: CardCode,
+          //     attributes: ["codeNumber", "codeStatus", "cardProductId"],
+          //     include: [
+          //       {
+          //         model: CardProduct,
+          //       },
+          //     ],
+          //   },
+          // ],
         },
       ],
       attributes: ["id", "paymentStatus", "createdAt", "userId", "paymentId"],
@@ -77,17 +77,17 @@ exports.getOrderByOrderId = async (req, res, next) => {
         {
           model: OrderDetail,
           // attributes: ["id","cardCodeId"],
-          include: [
-            {
-              model: CardCode,
-              attributes: ["codeStatus"],
-              //     include: [
-              //       {
-              //         model: CardProduct,
-              //       }
-              //     ]
-            },
-          ],
+          // include: [
+          //   {
+          //     model: CardCode,
+          //     attributes: ["codeStatus"],
+          //         include: [
+          //           {
+          //             model: CardProduct,
+          //           }
+          //         ]
+          //   },
+          // ],
         },
       ],
       where: { id: id },
@@ -128,18 +128,18 @@ exports.getOrderByUserId = async (req, res, next) => {
         },
         {
           model: OrderDetail,
-          attributes: ["id", "cardCodeId"],
-          include: [
-            {
-              model: CardCode,
-              attributes: ["codeNumber", "codeStatus", "cardProductId"],
-              include: [
-                {
-                  model: CardProduct,
-                },
-              ],
-            },
-          ],
+          // attributes: ["id", "cardCodeId"],
+          // include: [
+          //   {
+          //     model: CardCode,
+          //     attributes: ["codeNumber", "codeStatus", "cardProductId"],
+          //     include: [
+          //       {
+          //         model: CardProduct,
+          //       },
+          //     ],
+          //   },
+          // ],
         },
       ],
       where: { userId: id },
