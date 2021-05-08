@@ -187,7 +187,10 @@ exports.createCardProduct = async (req, res, next) => {
     if (!price || !price.trim()) {
       throw new AppError(400, "productPrice is required");
     }
-    if (!isNumbers.test(price.split(" ")[0])) {
+    // if (!isNumbers.test(price.split(" ")[0])) {
+    //   throw new AppError(400, "price must be numeric");
+    // }
+    if (!isNumbers.test(price)) {
       throw new AppError(400, "price must be numeric");
     }
 
@@ -238,7 +241,12 @@ exports.editCardProduct = async (req, res, next) => {
         message: "productPrice is required",
       });
     }
-    if (!isNumbers.test(price.split(" ")[0])) {
+    // if (!isNumbers.test(price.split(" ")[0])) {
+    //   return res.status(400).json({
+    //     message: "price must be numeric",
+    //   });
+    // }
+    if (!isNumbers.test(price)) {
       return res.status(400).json({
         message: "price must be numeric",
       });
