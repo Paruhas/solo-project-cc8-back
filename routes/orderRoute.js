@@ -1,12 +1,35 @@
-const express = require("express")
+const express = require("express");
 const orderRouter = express.Router();
 const orderController = require("../controllers/orderController");
-const cardCodeController = require("../controllers/cardCodeController")
-const userController = require("../controllers/userController")
+const cardCodeController = require("../controllers/cardCodeController");
+const userController = require("../controllers/userController");
 
-orderRouter.get("/",orderController.getOrder);
-orderRouter.get("/:id",orderController.getOrderByOrderId);
-orderRouter.get("/user/:id",userController.protect,orderController.getOrderByUserId);
-orderRouter.post("/",orderController.placeOrder,cardCodeController.editCardCodeStatus);
+orderRouter.get("/", userController.protectAdmin, orderController.getOrder);
+orderRouter.get(
+  "/:id",
+  userController.protect,
+  orderController.getOrderByOrderId
+);
+orderRouter.get(
+  "/count/:id",
+  userController.protect,
+  orderController.getOrderByOrderIdCount
+);
+orderRouter.get(
+  "/approve/:id",
+  userController.protect,
+  orderController.getOrderByOrderIdPaymentStatusAPPROVE
+);
+orderRouter.get(
+  "/user/:id",
+  userController.protect,
+  orderController.getOrderByUserId
+);
+orderRouter.post(
+  "/",
+  userController.protect,
+  orderController.placeOrder,
+  cardCodeController.editCardCodeStatus
+);
 
 module.exports = orderRouter;

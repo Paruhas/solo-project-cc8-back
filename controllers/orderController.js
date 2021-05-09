@@ -5,9 +5,11 @@ const {
   CardProduct,
   CardCode,
   BankAccount,
+  User,
   sequelize,
 } = require("../models");
 const AppError = require("../utils/AppError");
+const { QueryTypes } = require("sequelize");
 
 exports.getOrder = async (req, res, next) => {
   try {
@@ -77,21 +79,21 @@ exports.getOrderByOrderId = async (req, res, next) => {
         {
           model: OrderDetail,
           // attributes: ["id","cardCodeId"],
-          // include: [
-          //   {
-          //     model: CardCode,
-          //     attributes: ["codeStatus"],
-          //         include: [
-          //           {
-          //             model: CardProduct,
-          //           }
-          //         ]
-          //   },
-          // ],
+          include: [
+            {
+              model: CardCode,
+              //     attributes: ["codeStatus"],
+              //         include: [
+              //           {
+              //             model: CardProduct,
+              //           }
+              //         ]
+            },
+          ],
         },
       ],
       where: { id: id },
-      attributes: ["id", "paymentStatus", "createdAt", "userId", "paymentId"],
+      // attributes: ["id", "paymentStatus", "createdAt", "userId", "paymentId"],
     });
 
     if (ordersById.length == 0)
@@ -100,6 +102,79 @@ exports.getOrderByOrderId = async (req, res, next) => {
         .json({ message: "no orders by this orderId found" });
 
     return res.status(200).json({ ordersById });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getOrderByOrderIdCount = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const orderDetailById = await sequelize.query(
+      "SELECT o.id , o.payment_status, o.created_at , o.user_id , o.payment_id , od.card_code_product_img , od.card_code_product_name , od.card_code_product_price , od.order_id , count(od.card_code_product_name) AS total FROM orders AS o JOIN order_details AS od ON o.id = od.order_id WHERE o.user_id = ? GROUP BY card_code_product_name ,order_id ",
+      { replacements: [id], type: QueryTypes.SELECT }
+    );
+
+    if (orderDetailById.length == 0)
+      return res
+        .status(400)
+        .json({ message: "no orders by this orderId found" });
+
+    return res.status(200).json({ orderDetailById });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getOrderByOrderIdPaymentStatusAPPROVE = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const ordersByIdPaymentStatusAPPROVE = await Orders.findAll({
+      include: [
+        // {
+        // model: Payment,
+        // attributes: ["img", "dateTime", "transactionNumber", "bankAccountId"],
+        // include: [
+        //   {
+        //     model: BankAccount,
+        //     attributes: [
+        //       "accountName",
+        //       "bankName",
+        //       "accountNumber",
+        //       "isDeleted",
+        //     ],
+        //   },
+        // ],
+        // },
+        {
+          model: OrderDetail,
+          // attributes: ["id","cardCodeId"],
+          include: [
+            {
+              model: CardCode,
+              //     attributes: ["codeStatus"],
+              //         include: [
+              //           {
+              //             model: CardProduct,
+              //           }
+              //         ]
+            },
+          ],
+        },
+      ],
+      where: { id: id, paymentStatus: "APPROVE" },
+      // attributes: ["id", "paymentStatus", "createdAt", "userId", "paymentId"],
+    });
+
+    if (ordersByIdPaymentStatusAPPROVE.length == 0)
+      return res.status(400).json({
+        message:
+          "no orders by this orderId found; or paymentStatus !== APPROVE",
+      });
+
+    return res.status(200).json({ ordersByIdPaymentStatusAPPROVE });
   } catch (err) {
     next(err);
   }
@@ -160,11 +235,21 @@ exports.getOrderByUserId = async (req, res, next) => {
 exports.placeOrder = async (req, res, next) => {
   const transaction = await sequelize.transaction();
   try {
-    const { userId, orderItems } = req.body;
+    const {
+      // userId,
+      orderItems,
+    } = req.body;
+    const userId = req.user.id;
+    // console.log(req.user);
+    // console.log(userId);
 
     // validate
-    // สถานะบัตร
-    // amount ไปทำหน้าบ้านทำนะไอ้สัส ว่ากดได้ไม่เกิน max จำนวนของบัตรชนิดนั้นๆ
+    const findUser = User.findOne({
+      where: { id: userId },
+    });
+    if (!findUser) {
+      throw new AppError(400, "this userId not found");
+    }
 
     // create เพื่อเอา payment_id มาใส่
     const newPayment = await Payment.create(

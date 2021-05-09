@@ -15,7 +15,7 @@ exports.getAllPayment = async (req, res, next) => {
     const { sort } = req.query;
 
     if (!sort) {
-      const payments = await Payment.findAll({
+      const payment = await Payment.findAll({
         include: [
           {
             model: Orders,
@@ -28,7 +28,7 @@ exports.getAllPayment = async (req, res, next) => {
         where: {},
       });
 
-      return res.status(200).json({ payments });
+      return res.status(200).json({ payment });
     }
 
     if (sort && !paymentStatusType[sort])
@@ -151,13 +151,44 @@ exports.approvePayment = async (req, res, next) => {
       );
     }
 
+    // หาว่า payment status === PENDING
+    const findOrderToChangePaymentStatus = await Orders.findOne({
+      where: {
+        paymentId: paymentId,
+        paymentStatus: paymentStatusType[0],
+      },
+    });
+
+    if (!findOrderToChangePaymentStatus) {
+      throw new AppError(
+        400,
+        "no paymentId you want to update to APPROVE; or paymentStatus is PENDING"
+      );
+    }
+
+    // หาว่ามีการอัพโหลดมาจาก User แล้ว ถึงจะไปต่อได้
+    const findPayment = await Payment.findOne({
+      where: {
+        id: paymentId,
+      },
+    });
+
+    if (
+      !findPayment.img ||
+      !findPayment.dateTime ||
+      !findPayment.transactionNumber ||
+      !findPayment.bankAccountId
+    ) {
+      throw new AppError(400, "can't APPROVE payment that some data === null");
+    }
+
     const updatePaymentStatusToApprove = await Orders.update(
       {
         paymentStatus: paymentStatusType[1],
       },
       {
         where: {
-          id: paymentId,
+          paymentId: paymentId,
         },
       }
     );
@@ -229,13 +260,28 @@ exports.cancelPayment = async (req, res, next) => {
       );
     }
 
+    // หาว่า payment status === PENDING
+    const findOrderToChangePaymentStatus = await Orders.findOne({
+      where: {
+        paymentId: paymentId,
+        paymentStatus: paymentStatusType[0],
+      },
+    });
+
+    if (!findOrderToChangePaymentStatus) {
+      throw new AppError(
+        400,
+        "no paymentId you want to update to CANCEL; paymentStatus is not PENDING"
+      );
+    }
+
     const updatePaymentStatusToCancel = await Orders.update(
       {
         paymentStatus: paymentStatusType[2],
       },
       {
         where: {
-          id: paymentId,
+          paymentId: paymentId,
         },
       }
     );
