@@ -122,6 +122,7 @@ exports.getAllAvailableCardProducts = async (req, res, next) => {
       include: [
         {
           model: CardCode,
+          attributes: ["cardProductId", "codeStatus", "id"],
           where: {
             codeStatus: "AVAILABLE",
           },
