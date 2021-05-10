@@ -110,10 +110,11 @@ exports.getOrderByOrderId = async (req, res, next) => {
 exports.getOrderByOrderIdCount = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { orderId } = req.body;
 
     const orderDetailById = await sequelize.query(
-      "SELECT o.id , o.payment_status, o.created_at , o.user_id , o.payment_id , od.card_code_product_img , od.card_code_product_name , od.card_code_product_price , od.order_id , count(od.card_code_product_name) AS total FROM orders AS o JOIN order_details AS od ON o.id = od.order_id WHERE o.user_id = ? GROUP BY card_code_product_name ,order_id ",
-      { replacements: [id], type: QueryTypes.SELECT }
+      "SELECT o.id , o.payment_status, o.created_at , o.user_id , o.payment_id , od.card_code_product_img , od.card_code_product_name , od.card_code_product_price , od.order_id , count(od.card_code_product_name) AS total FROM orders AS o JOIN order_details AS od ON o.id = od.order_id WHERE o.user_id = ? AND od.order_id = ? GROUP BY card_code_product_name ,order_id ",
+      { replacements: [id, orderId], type: QueryTypes.SELECT }
     );
 
     if (orderDetailById.length == 0)
@@ -219,6 +220,7 @@ exports.getOrderByUserId = async (req, res, next) => {
       ],
       where: { userId: id },
       attributes: ["id", "paymentStatus", "createdAt", "userId", "paymentId"],
+      order: [["id", "DESC"]],
     });
 
     if (allOrdersByUserId.length == 0)
