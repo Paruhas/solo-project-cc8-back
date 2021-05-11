@@ -385,3 +385,63 @@ exports.placeOrder = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getOrderByUserAndOrderId = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { orderId } = req.query;
+
+    if (!orderId) {
+      return res
+        .status(400)
+        .json({ message: "please insert req.query 'orderId=' " });
+    }
+
+    const orderByUserAndOrderId = await Orders.findOne({
+      include: [
+        {
+          model: Payment,
+          attributes: ["img", "dateTime", "transactionNumber", "bankAccountId"],
+          include: [
+            {
+              model: BankAccount,
+              attributes: [
+                "accountName",
+                "bankName",
+                "accountNumber",
+                "isDeleted",
+              ],
+            },
+          ],
+        },
+        {
+          model: OrderDetail,
+          // attributes: ["id", "cardCodeId"],
+          // include: [
+          //   {
+          //     model: CardCode,
+          //     attributes: ["codeNumber", "codeStatus", "cardProductId"],
+          //     include: [
+          //       {
+          //         model: CardProduct,
+          //       },
+          //     ],
+          //   },
+          // ],
+        },
+      ],
+      where: { userId: id, id: orderId },
+      attributes: ["id", "paymentStatus", "createdAt", "userId", "paymentId"],
+      // order: [["id", "DESC"]],
+    });
+
+    if (orderByUserAndOrderId.length == 0)
+      return res
+        .status(400)
+        .json({ message: "no orders by this userId found" });
+
+    return res.status(200).json({ orderByUserAndOrderId });
+  } catch (err) {
+    next(err);
+  }
+};

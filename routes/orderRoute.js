@@ -31,5 +31,10 @@ orderRouter.post(
   orderController.placeOrder,
   cardCodeController.editCardCodeStatus
 );
+orderRouter.get(
+  "/order-user/:id",
+  userController.protect,
+  orderController.getOrderByUserAndOrderId
+); //
 
 module.exports = orderRouter;
