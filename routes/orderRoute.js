@@ -25,16 +25,16 @@ orderRouter.get(
   userController.protect,
   orderController.getOrderByUserId
 );
+orderRouter.get(
+  "/order-user/:id",
+  userController.protect,
+  orderController.getOrderByUserAndOrderId
+); //
 orderRouter.post(
   "/",
   userController.protect,
   orderController.placeOrder,
   cardCodeController.editCardCodeStatus
 );
-orderRouter.get(
-  "/order-user/:id",
-  userController.protect,
-  orderController.getOrderByUserAndOrderId
-); //
 
 module.exports = orderRouter;
